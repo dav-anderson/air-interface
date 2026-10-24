@@ -1,6 +1,6 @@
 //! What both operators know about the AIR server: its health answer.
 
-use air_interface::air;
+use air_minterface::air;
 
 #[test]
 fn only_a_bare_ok_with_status_200_is_a_healthy_air_server() {

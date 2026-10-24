@@ -1,4 +1,4 @@
-# air-interface: design notes
+# air-minterface: design notes
 
 **What belongs here.** Code that spi and aso both had, byte for byte or nearly.
 If a function needs to know a program's name, it is passed one (`Managed`); if it

@@ -1,4 +1,4 @@
-# air-interface
+# air-minterface
 
 The code that operates the programs an AIR runs, once. Two operators look after
 those programs: **spi** (a Service Point Instance: bitcoind, the AIR server,
@@ -13,12 +13,12 @@ operators is passed in through two small traits.
 supported only as a development machine, so that the operators can be tried and
 tested on a Mac. Nothing here is built to make macOS a production system.
 
-Version 0.1.0. How the crate is cut, and why, is in [DESIGN.md](DESIGN.md).
+Version 0.2.0. How the crate is cut, and why, is in [DESIGN.md](DESIGN.md).
 
 ## Using it
 
 ```toml
-air-interface = { git = "https://github.com/dav-anderson/air-interface.git", tag = "v0.1.0" }
+air-minterface = { git = "https://github.com/dav-anderson/air-minterface.git", tag = "v0.2.0" }
 ```
 
 It uses the `curl` and `tar` of the machine for downloads (no HTTP crate, so an

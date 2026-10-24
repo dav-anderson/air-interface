@@ -7,7 +7,7 @@ mod common;
 use std::fs;
 use std::io::Write;
 
-use air_interface::logs::{self, Log};
+use air_minterface::logs::{self, Log};
 use common::scratch;
 
 fn big(path: &std::path::Path, bytes: usize) {

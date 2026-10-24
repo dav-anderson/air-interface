@@ -12,19 +12,19 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use air_interface::exec::{Exec, Ran, System};
-use air_interface::files::sha256_file;
-use air_interface::record;
-use air_interface::release::{Download, Source};
-use air_interface::schedule::Job;
-use air_interface::version::{Tags, program_version};
-use air_interface::{Managed, Operator, Probe, Say};
+use air_minterface::exec::{Exec, Ran, System};
+use air_minterface::files::sha256_file;
+use air_minterface::record;
+use air_minterface::release::{Download, Source};
+use air_minterface::schedule::Job;
+use air_minterface::version::{Tags, program_version};
+use air_minterface::{Managed, Operator, Probe, Say};
 
 /// A folder of its own for every call.
 pub fn scratch(name: &str) -> PathBuf {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let n = NEXT.fetch_add(1, Ordering::Relaxed);
-    let d = std::env::temp_dir().join(format!("air-interface-{}-{n}-{name}", std::process::id()));
+    let d = std::env::temp_dir().join(format!("air-minterface-{}-{n}-{name}", std::process::id()));
     let _ = std::fs::remove_dir_all(&d);
     std::fs::create_dir_all(&d).unwrap();
     d

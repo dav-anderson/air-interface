@@ -1,7 +1,7 @@
 //! Service-file templates: the `{{placeholder}}`s, what may go into one, and
 //! the home-folder rule. (Moved from spi's inline tests.)
 
-use air_interface::template::{expand, plain, under_home};
+use air_minterface::template::{expand, plain, under_home};
 
 fn vars() -> Vec<(&'static str, String)> {
     vec![("a", "1 & 2".into()), ("b_xml", "<x/>".into())]

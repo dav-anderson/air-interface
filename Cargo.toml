@@ -1,6 +1,6 @@
 [package]
-name = "air-interface"
-version = "0.1.0"
+name = "air-minterface"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.93"
 license = "MIT"
@@ -15,5 +15,5 @@ sha2 = "0.10"
 jiff = { version = "0.2", features = ["tzdb-bundle-always"] }
 
 [lib]
-name = "air_interface"
+name = "air_minterface"
 path = "src/lib.rs"

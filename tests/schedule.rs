@@ -12,8 +12,8 @@ mod common;
 
 use std::path::PathBuf;
 
-use air_interface::Operator;
-use air_interface::schedule::{self, Due, Pending, Where};
+use air_minterface::Operator;
+use air_minterface::schedule::{self, Due, Pending, Where};
 use common::{Fake, Stub, accepting, fake, ran, stub};
 use jiff::Zoned;
 use jiff::civil;

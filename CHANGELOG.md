@@ -1,6 +1,16 @@
 # Changelog
 
+## 0.2.0 (2026-10-24)
+
+The crate is renamed **air-minterface** (it was air-interface; the repository is
+now https://github.com/dav-anderson/air-minterface). Breaking for anyone who
+depends on it: the package is `air-minterface`, the library `air_minterface`,
+and the line `versions` shows in both operators is named `air-minterface`. No
+other change.
+
 ## 0.1.0 (2026-10-24)
+
+Released as air-interface.
 
 First version. The code that spi and aso had twice, cut out into one crate.
 

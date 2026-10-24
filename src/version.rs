@@ -125,7 +125,7 @@ pub fn render(lines: &[Line]) -> String {
 /// The line that names this crate: `versions` shows it in both operators.
 pub fn crate_line() -> Line {
     known(
-        "air-interface",
+        "air-minterface",
         crate::VERSION,
         "the shared code that installs, upgrades, schedules and logs the programs",
     )

@@ -8,9 +8,9 @@
 
 mod common;
 
-use air_interface::release::{self, Source};
-use air_interface::upgrade::{self, Options, Upgraded};
-use air_interface::{Managed, Probe};
+use air_minterface::release::{self, Source};
+use air_minterface::upgrade::{self, Options, Upgraded};
+use air_minterface::{Managed, Probe};
 use common::{FakeSource, Prog, Stub, accepting, install, record_path, serving, stub, text};
 
 /// Upgrade `programs` with `source`, the health check answering `probe`.

@@ -1,4 +1,4 @@
-//! air-interface: the code that operates the programs an AIR runs.
+//! air-minterface: the code that operates the programs an AIR runs.
 //!
 //! An AIR (a server for the Air protocol) runs next to programs that need
 //! looking after: the AIR server itself, the mints, a Bitcoin node, a wallet.

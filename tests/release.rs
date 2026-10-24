@@ -4,8 +4,8 @@
 
 mod common;
 
-use air_interface::release;
-use air_interface::version::{Tags, same_version};
+use air_minterface::release;
+use air_minterface::version::{Tags, same_version};
 use common::Prog;
 
 fn strings(tags: &[&str]) -> Vec<String> {

@@ -5,7 +5,7 @@
 
 mod common;
 
-use air_interface::github::Github;
+use air_minterface::github::Github;
 use common::{Web, scratch, sha, stub, tarball, web};
 
 const LINUX: &str = "alpha-0.6.0-linux-x86_64.tar.gz";
