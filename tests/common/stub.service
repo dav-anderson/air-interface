@@ -1,0 +1,5 @@
+[Service]
+Type=oneshot
+Environment=HOME={{home}}
+ExecStart={{exe}} --dir {{dir}} --config {{config}} upgrade run-scheduled
+StandardOutput=append:{{log_dir}}/stub-upgrade.log

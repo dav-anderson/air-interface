@@ -1,0 +1,27 @@
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>org.example.upgrade</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{exe}}</string>
+        <string>upgrade</string>
+        <string>run-scheduled</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Month</key>
+        <integer>{{month}}</integer>
+        <key>Day</key>
+        <integer>{{day}}</integer>
+        <key>Hour</key>
+        <integer>{{hour}}</integer>
+        <key>Minute</key>
+        <integer>{{minute}}</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>{{log_dir}}/stub-upgrade.log</string>
+</dict>
+</plist>

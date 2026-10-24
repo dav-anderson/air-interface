@@ -1,0 +1,5 @@
+[Timer]
+OnCalendar={{on_calendar}}
+OnBootSec=2min
+Persistent=true
+Unit=st-upgrade.service
