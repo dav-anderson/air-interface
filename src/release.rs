@@ -71,11 +71,17 @@ pub fn releases_dir<P: Managed>(op: &P::Op, program: P, version: &str) -> PathBu
     op.dir().join("releases").join(program.name()).join(version)
 }
 
-/// Remove old downloads of `program` from `releases/`: the `release.keep` newest
-/// versions stay, and so do the versions in `protect` (the installed one and the
-/// one it replaced). A folder whose name is not a version is left alone. Returns
-/// the versions removed.
+/// Remove old downloads of `program` from `releases/`, oldest first (lowest
+/// version first): the `release.keep` newest versions stay, and so do the
+/// versions in `protect` (the installed one and the one it replaced). A `keep`
+/// of 0 keeps every release: nothing is removed. A folder whose name is not a
+/// version is left alone. Returns the versions removed, in the order they were
+/// removed.
 pub fn prune<P: Managed>(op: &P::Op, program: P, protect: &[&str]) -> Result<Vec<String>, String> {
+    let keep = op.release_keep();
+    if keep == 0 {
+        return Ok(Vec::new());
+    }
     let root = op.dir().join("releases").join(program.name());
     let Ok(entries) = fs::read_dir(&root) else {
         return Ok(Vec::new());
@@ -89,11 +95,11 @@ pub fn prune<P: Managed>(op: &P::Op, program: P, protect: &[&str]) -> Result<Vec
             rule.numbers(&name).map(|n| (n, name))
         })
         .collect();
-    found.sort_by_key(|f| std::cmp::Reverse(f.0));
-    let keep = op.release_keep();
+    found.sort_by_key(|f| f.0);
+    let newest = found.len().saturating_sub(keep);
     let mut gone = Vec::new();
     for (i, (_, name)) in found.iter().enumerate() {
-        if i < keep || protect.iter().any(|p| same_version(p, name)) {
+        if i >= newest || protect.iter().any(|p| same_version(p, name)) {
             continue;
         }
         let path = root.join(name);

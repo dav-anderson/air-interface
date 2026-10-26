@@ -68,7 +68,9 @@ pub trait Operator {
     fn unit_dir(&self) -> PathBuf;
     /// The GitHub API's address (`https://api.github.com`).
     fn release_url(&self) -> String;
-    /// How many downloaded releases of a program are kept.
+    /// How many downloaded releases of a program are kept (`release.keep`): the
+    /// newest that many, besides the installed one and the one before it. 0
+    /// keeps every release.
     fn release_keep(&self) -> usize;
 }
 

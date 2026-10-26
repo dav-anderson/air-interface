@@ -119,3 +119,37 @@ fn a_running_log_over_the_cap_is_copied_aside_and_emptied_where_the_program_writ
         );
     }
 }
+
+#[test]
+fn a_max_of_0_never_moves_a_log_and_a_keep_of_0_keeps_every_backup() {
+    // Fails if 0 is read as a cap of 0 MB (every log would be moved aside) or as
+    // "keep none" (every backup would be removed). A 60 MB log with max_mb 0 stays
+    // where it is for both ways of rotating; 10 backups survive keep 0 and the
+    // same call with keep 4 leaves the newest 4.
+    let dir = scratch("zero");
+    let log = dir.join("air_server.log");
+    big(&log, 60 * 1024 * 1024);
+    for epoch in 1..=10 {
+        fs::write(dir.join(format!("air_server.log.{epoch}.bak")), "old").unwrap();
+    }
+    let count = |dir: &std::path::Path| {
+        fs::read_dir(dir)
+            .unwrap()
+            .filter(|e| {
+                e.as_ref()
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .ends_with(".bak")
+            })
+            .count()
+    };
+    assert_eq!(logs::rotate(&log, 0, 0, 700).unwrap(), None);
+    assert_eq!(logs::rotate_running(&log, 0, 0, 800).unwrap(), None);
+    assert_eq!(fs::metadata(&log).unwrap().len(), 60 * 1024 * 1024);
+    assert_eq!(count(&dir), 10);
+    assert_eq!(logs::prune(&log, 0).unwrap(), 0);
+    assert_eq!(count(&dir), 10);
+    assert_eq!(logs::prune(&log, 4).unwrap(), 6);
+    assert_eq!(count(&dir), 4);
+}

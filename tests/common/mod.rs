@@ -37,6 +37,8 @@ pub struct Stub {
     pub mac: bool,
     pub log_dir: PathBuf,
     pub pin: Option<String>,
+    /// `release.keep`: 2 unless a test sets it.
+    pub keep: usize,
     pub restarts: Mutex<Vec<String>>,
 }
 
@@ -72,7 +74,7 @@ impl Operator for Stub {
         "https://releases.example".into()
     }
     fn release_keep(&self) -> usize {
-        2
+        self.keep
     }
 }
 
@@ -85,6 +87,7 @@ pub fn stub(name: &str, mac: bool) -> Stub {
         dir,
         mac,
         pin: None,
+        keep: 2,
         restarts: Mutex::new(Vec::new()),
     }
 }

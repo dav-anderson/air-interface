@@ -101,3 +101,72 @@ fn a_pin_reset_keeps_only_the_newest_backups_the_caller_asks_for() {
             .for_each(|e| std::fs::remove_file(at(e)).unwrap());
     }
 }
+
+/// Five downloaded releases 0.1.0 to 0.5.0, with 0.5.0 installed and 0.4.0 the
+/// one before it; `keep` is `release.keep`. Returns what `release::prune` removed.
+fn pruned_with(name: &str, keep: usize) -> (Vec<String>, Vec<String>) {
+    let mut op = common::stub(name, false);
+    op.keep = keep;
+    let root = op.dir.join("releases/alpha");
+    for v in ["0.1.0", "0.2.0", "0.3.0", "0.4.0", "0.5.0"] {
+        std::fs::create_dir_all(root.join(v)).unwrap();
+    }
+    // a folder that is not a version is left alone
+    std::fs::create_dir_all(root.join("scratch")).unwrap();
+    let gone = release::prune(&op, Prog::Alpha, &["0.5.0", "0.4.0"]).unwrap();
+    let mut left: Vec<String> = std::fs::read_dir(&root)
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().to_string())
+        .collect();
+    left.sort();
+    (gone, left)
+}
+
+#[test]
+fn release_prune_removes_the_oldest_first_and_keep_0_removes_nothing() {
+    // Fails if keep 0 deletes anything (it must keep every release), if the
+    // newest are removed first (the order of `gone` is the removal order, oldest
+    // first), or if the installed release and the one before it can go.
+    let (gone, left) = pruned_with("keep-3", 3);
+    assert_eq!(gone, ["0.1.0", "0.2.0"]);
+    assert_eq!(left, ["0.3.0", "0.4.0", "0.5.0", "scratch"]);
+    let (gone, left) = pruned_with("keep-0", 0);
+    assert!(gone.is_empty());
+    assert_eq!(
+        left,
+        ["0.1.0", "0.2.0", "0.3.0", "0.4.0", "0.5.0", "scratch"]
+    );
+    // keep 1 would keep only 0.5.0; 0.4.0 is protected as the one before it
+    let (gone, left) = pruned_with("keep-1", 1);
+    assert_eq!(gone, ["0.1.0", "0.2.0", "0.3.0"]);
+    assert_eq!(left, ["0.4.0", "0.5.0", "scratch"]);
+}
+
+#[test]
+fn backup_pruning_with_keep_0_leaves_every_backup() {
+    // Fails if keep 0 is read as "keep none" and removes the backups of a
+    // settings file. 7 backups, epochs 1 to 7: keep 3 leaves 5, 6 and 7.
+    let dir = common::scratch("baks-keep-0");
+    let config = dir.join("stub.toml");
+    std::fs::write(&config, "x").unwrap();
+    for epoch in 1..=7 {
+        std::fs::write(dir.join(format!("stub.toml.{epoch}.bak")), "old").unwrap();
+    }
+    let count = || {
+        std::fs::read_dir(&dir)
+            .unwrap()
+            .filter(|e| {
+                e.as_ref()
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .ends_with(".bak")
+            })
+            .count()
+    };
+    air_minterface::files::prune_backups(&config, "stub.toml", 0);
+    assert_eq!(count(), 7);
+    air_minterface::files::prune_backups(&config, "stub.toml", 3);
+    assert_eq!(count(), 3);
+    assert!(dir.join("stub.toml.7.bak").exists() && !dir.join("stub.toml.4.bak").exists());
+}

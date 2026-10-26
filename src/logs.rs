@@ -2,7 +2,9 @@
 //!
 //! **One rule for every log**: a log bigger than `[service] log_max_size_mb` is
 //! put aside as `<name>.<epoch>.bak`, and only the newest `[service] log_keep`
-//! of those `.bak` files are kept. There are two kinds of log:
+//! of those `.bak` files are kept. **0 means no cap** for both settings:
+//! `log_max_size_mb` 0 means a log is never moved aside, and `log_keep` 0 keeps
+//! every `.bak` file. There are two kinds of log:
 //!
 //! - A program that is meant never to stop writes to its log for as long as it
 //!   runs (a mint, the AIR server, a node). Two things keep that log under the
@@ -24,9 +26,9 @@ use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-/// `[service] log_max_size_mb`: 50.
+/// `[service] log_max_size_mb`: 50. 0: a log is never moved aside.
 pub const DEFAULT_MAX_MB: u64 = 50;
-/// `[service] log_keep`: 4.
+/// `[service] log_keep`: 4. 0: every `.bak` file is kept.
 pub const DEFAULT_KEEP: u64 = 4;
 
 /// The `.bak` files of `log`, newest first: `(epoch, path)`.
@@ -57,9 +59,18 @@ fn backups(log: &Path) -> Vec<(u64, PathBuf)> {
     found
 }
 
-/// Remove all but the newest `keep` `.bak` files of `log`. Returns how many were
-/// removed.
+/// Whether `log` is a file bigger than `max_mb` megabytes. A `max_mb` of 0 is
+/// no cap: never over.
+fn is_over(log: &Path, max_mb: u64) -> bool {
+    max_mb != 0 && fs::metadata(log).is_ok_and(|m| m.is_file() && m.len() > max_mb * 1024 * 1024)
+}
+
+/// Remove all but the newest `keep` `.bak` files of `log`. A `keep` of 0 keeps
+/// all of them: nothing is removed. Returns how many were removed.
 pub fn prune(log: &Path, keep: u64) -> Result<usize, String> {
+    if keep == 0 {
+        return Ok(0);
+    }
     let mut removed = 0;
     for (_, path) in backups(log).into_iter().skip(keep as usize) {
         fs::remove_file(&path).map_err(|e| format!("cannot remove {}: {e}", path.display()))?;
@@ -69,11 +80,13 @@ pub fn prune(log: &Path, keep: u64) -> Result<usize, String> {
 }
 
 /// Move `log` aside to `<log>.<epoch>.bak` if it is bigger than `max_mb`
-/// megabytes, then prune to the newest `keep`. Returns the `.bak` file made, if
-/// any. A log that is not there, or is not over the cap, is left alone (but the
-/// `.bak` files are still pruned, so a lowered `log_keep` takes effect).
+/// megabytes, then prune to the newest `keep`. A `max_mb` of 0 means a log is
+/// never moved aside; a `keep` of 0 keeps every `.bak` file. Returns the `.bak`
+/// file made, if any. A log that is not there, or is not over the cap, is left
+/// alone (but the `.bak` files are still pruned, so a lowered `log_keep` takes
+/// effect).
 pub fn rotate(log: &Path, max_mb: u64, keep: u64, now: u64) -> Result<Option<PathBuf>, String> {
-    let over = fs::metadata(log).is_ok_and(|m| m.is_file() && m.len() > max_mb * 1024 * 1024);
+    let over = is_over(log, max_mb);
     let made = if over {
         let mut epoch = now;
         let target = loop {
@@ -101,16 +114,17 @@ pub fn rotate(log: &Path, max_mb: u64, keep: u64, now: u64) -> Result<Option<Pat
 /// For a log a running program holds open for appending: if `log` is bigger
 /// than `max_mb` megabytes, copy it to `<log>.<epoch>.bak` (owner-only) and empty
 /// it in place, then prune to the newest `keep`. A rename would leave the
-/// program writing to the moved file, past any cap. Returns the `.bak` file
-/// made, if any. A log that is not there, or is not over the cap, is left alone
-/// (the `.bak` files are still pruned).
+/// program writing to the moved file, past any cap. A `max_mb` of 0 means a log
+/// is never copied aside; a `keep` of 0 keeps every `.bak` file. Returns the
+/// `.bak` file made, if any. A log that is not there, or is not over the cap, is
+/// left alone (the `.bak` files are still pruned).
 pub fn rotate_running(
     log: &Path,
     max_mb: u64,
     keep: u64,
     now: u64,
 ) -> Result<Option<PathBuf>, String> {
-    let over = fs::metadata(log).is_ok_and(|m| m.is_file() && m.len() > max_mb * 1024 * 1024);
+    let over = is_over(log, max_mb);
     let made = if over {
         let mut epoch = now;
         let (target, mut copy) = loop {

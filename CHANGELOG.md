@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 (2026-10-26)
+
+Breaking: **0 means "keep everything"** for every count and size that caps what
+the operators keep. A caller that passed 0 meaning "keep none" or "a cap of 0 MB"
+now gets the opposite; spi and aso refused 0 before, so neither did.
+
+- `release::prune`: `Operator::release_keep` of 0 removes nothing. Otherwise it
+  removes in ascending version order (oldest first), skipping the newest `keep`
+  and every version in `protect` (the installed release and the one before it,
+  which are never removed). The returned list is in removal order, oldest first;
+  it was newest first.
+- `logs::prune`: `keep` 0 removes nothing. `logs::rotate` and
+  `logs::rotate_running`: `max_mb` 0 never moves a log aside (and `keep` 0
+  keeps every `.bak` file). `DEFAULT_KEEP` (4) and `DEFAULT_MAX_MB` (50) are
+  unchanged.
+- `files::prune_backups` and `files::backup_and_replace`: `keep` 0 removes
+  nothing.
+- Doc comments say what 0 means; `Operator::release_keep` says it.
+- Tests: `release_prune_removes_the_oldest_first_and_keep_0_removes_nothing`,
+  `backup_pruning_with_keep_0_leaves_every_backup` and
+  `a_max_of_0_never_moves_a_log_and_a_keep_of_0_keeps_every_backup`; the stub
+  operator's `release.keep` is a field (2 unless a test sets it).
+
 ## 0.2.0 (2026-10-24)
 
 The crate is renamed **air-minterface** (it was air-interface; the repository is

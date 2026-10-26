@@ -62,8 +62,12 @@ pub fn find_binary(spec: &str) -> Option<PathBuf> {
     found.and_then(|p| fs::canonicalize(p).ok())
 }
 
-/// Keep the newest `keep` `<name>.<epoch>.bak` files next to `config`.
+/// Keep the newest `keep` `<name>.<epoch>.bak` files next to `config`. A `keep`
+/// of 0 keeps all of them: nothing is removed.
 pub fn prune_backups(config: &Path, name: &str, keep: usize) {
+    if keep == 0 {
+        return;
+    }
     let dir = config.parent().filter(|d| !d.as_os_str().is_empty());
     let mut found: Vec<(i64, PathBuf)> = fs::read_dir(dir.unwrap_or(Path::new(".")))
         .into_iter()
@@ -85,7 +89,8 @@ pub fn prune_backups(config: &Path, name: &str, keep: usize) {
 }
 
 /// Copy `config` to `<config>.<epoch>.bak`, replace it with `edited`, and keep
-/// the newest `keep` backups. Returns the backup's path. `fallback_name` is the
+/// the newest `keep` backups (all of them when `keep` is 0). Returns the
+/// backup's path. `fallback_name` is the
 /// backup's base name for a path that has none.
 pub fn backup_and_replace(
     config: &Path,
